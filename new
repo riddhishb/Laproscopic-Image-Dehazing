@@ -1,0 +1,17 @@
+#!/usr/bin/python
+
+import os
+
+name=raw_input("Enter project name: ")
+
+os.mkdir(name)
+os.chdir(name)
+
+text="cmake_minimum_required(VERSION 2.8)\nproject( "+name+" )\nfind_package( OpenCV REQUIRED )\nadd_executable( "+name+" "+name+".cpp )\ntarget_link_libraries( "+name+" ${OpenCV_LIBS} )"
+
+cmakelists=open("CMakeLists.txt","w+")
+cmakelists.write(text)
+cmakelists.close()
+
+cppFile=open(name+".cpp","w+")
+cppFile.close()
