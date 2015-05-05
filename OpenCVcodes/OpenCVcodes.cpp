@@ -16,36 +16,33 @@
 using namespace std;
 using namespace cv;
 
+int minX,maxX,minY,maxY;
+double minVal1,minVal2,minVal3;
+double maxVal1,maxVal2,maxVal3;
+Mat ROIr,ROIb,ROIg;
 
 Mat makeDarkChannel(Mat I,int patch_size){
-	int image_x = I.rows;
-  	int image_y = I.cols;
-  	int channels = 3;
-
 
   	Mat J = Mat::zeros(I.size(),I.type());
   	cvtColor(J,J,CV_BGR2GRAY);
 	int padding = cvFloor(patch_size/2);
+
+    // padding the given image
 	Mat padded(I.rows + 2*padding, I.cols + 2*padding, I.type());
 	padded.setTo(0);
-
 	I.copyTo(padded(Rect(padding, padding, I.cols, I.rows)));
-	int minX,maxX,minY,maxY;
+	
 	vector<Mat> channelImages;
   	split(padded,channelImages);
-  	double minVal1,minVal2,minVal3;
-  	double maxVal1,maxVal2,maxVal3;
-    Mat ROIr,ROIb,ROIg;
-
-	for(int i = 0;i<image_x;i++){
+  
+	for(int i = 0;i<I.rows;i++){
 		minX = i;
 		maxX = i + 2*cvFloor(patch_size/2);
-		for(int j=0;j<image_y;j++){
+		for(int j=0;j<I.cols;j++){
 
 			minY = j;
 			maxY = j + 2*cvFloor(patch_size/2);
             			
-                        // cout << "BITCH" <<j << image_y<<endl;
             ROIb = channelImages.at(0)(Rect(minY,minX,patch_size-1,patch_size-1));
             ROIg = channelImages.at(1)(Rect(minY,minX,patch_size-1,patch_size-1));
             ROIr = channelImages.at(2)(Rect(minY,minX,patch_size-1,patch_size-1));
@@ -69,14 +66,16 @@ int main(){
 
 	Mat input;
 	input = imread("10.png");
+    input = input(Rect((input.cols - input.rows)/2,0,input.rows-1,input.rows-1)); // cropping the sides.
+    resize(input, input, Size(), 0.238, 0.238, INTER_LINEAR);
     Mat out = makeDarkChannel(input,21);
-	imshow("Input",input);
-    imshow("Output",out);
+    
+    resize(out, out, Size(), 4.2017, 4.2017, INTER_LINEAR);	
     clock_t t;
     t = clock();
+    imshow("Output",out);
     cout << ((float)t)/CLOCKS_PER_SEC << "seconds" << endl;
 	waitKey(0);
 	return 0;
-
 }
 
