@@ -38,8 +38,8 @@ function [Orig_image out dark_ch Tx_map T A] = removeHaze( imageName, patch_size
     dimJ = size(dark_ch);
     numBrightestPixels = ceil(0.001 * dimJ(1) * dimJ(2)); % Use the cieling to overestimate number needed
     
-    A = estimateA(Orig_image,dark_ch,numBrightestPixels);
-    
+    A= estimateA(Orig_image,dark_ch,numBrightestPixels);
+%     size(A)
     % Section 4.1
     %   Estimate the Transmission
     %   Equation 12
