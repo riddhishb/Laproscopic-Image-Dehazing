@@ -12,6 +12,6 @@ if(prod(double(size(inA) == size(inB))) ~= 1)
     error('RRMSE: Image sizes are not the same');
 end
 
-out = sqrt(sum(sum((abs(inA)-abs(inB)).^2)))/sqrt(sum(sum(abs(inA).^2)));
+out = sqrt(sum(sum(sum((abs(inA)-abs(inB)).^2))))/sqrt(sum(sum(sum(abs(inA).^2))));
 
 end
