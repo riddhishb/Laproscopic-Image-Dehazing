@@ -14,10 +14,10 @@ function [Orig_image out dark_ch Tx_map T A] = removeHaze( imageName, patch_size
     Orig_image = imread(imageName);
      Orig_image = imresize(Orig_image,0.25);
      
-    if max(max(max(size(Orig_image)))) > 768
-        scale = 768 / max(max(max(size(Orig_image))));
-        Orig_image = imresize(Orig_image,scale);
-    end
+%     if max(max(max(size(Orig_image)))) > 768
+%         scale = 768 / max(max(max(size(Orig_image))));
+%         Orig_image = imresize(Orig_image,scale);
+%     end
     Orig_image = double(Orig_image) ./ 255;
     
     
