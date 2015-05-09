@@ -1,15 +1,15 @@
 
 %% Run This
 
-for i=1:30
+for i=1:37
     i
     k1 = int2str(i);
 name = strcat(k1,'.png');
-name = strcat('clean/',name);
+% name = strcat('clean/',name);
 name_in = strcat(k1,'-in.png');
-name_in = strcat('results/clean/',name_in);
+name_in = strcat('results/',name_in);
 name_out = strcat(k1,'-out.png');
-name_out = strcat('results/clean/',name_out);
+name_out = strcat('results/',name_out);
 
  tic;
 [a,b,c,d,e,f] = removeHaze(name,21);

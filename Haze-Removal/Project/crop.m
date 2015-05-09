@@ -1,11 +1,11 @@
 
 %% For cropping the images
 
-for i =1:30
+for i =15:37
     i
 k1 = int2str(i);
 name = strcat(k1,'.png');
-name = strcat('Database/clean/',name);
+name = strcat('Database/',name);
 disp(name);
 image_in = imread(name);
 k = size(image_in);
