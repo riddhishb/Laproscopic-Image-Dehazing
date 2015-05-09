@@ -4,6 +4,8 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/core/core.hpp"
+#include "guidedfilter.h"
+#include "guidedfilter.cpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,22 +60,25 @@ Mat makeDarkChannel(Mat I,int patch_size){
 
     return J;
 }
-// removeHaze()
-// guided_filter()
-// estimateA()
 
 int main(){
 
 	Mat input;
 	input = imread("10.png");
     input = input(Rect((input.cols - input.rows)/2,0,input.rows-1,input.rows-1)); // cropping the sides.
-    resize(input, input, Size(), 0.238, 0.238, INTER_LINEAR);
-    Mat out = makeDarkChannel(input,21);
-    
-    resize(out, out, Size(), 4.2017, 4.2017, INTER_LINEAR);	
+
+    Mat tx = imread("tx.jpg");
+    Mat guide = imread("guide.jpg");
+    //resize(input, input, Size(), 0.238, 0.238, INTER_LINEAR);
+   // Mat out = makeDarkChannel(input,21);
+    Mat tx_out;
+    cvtColor(guide,guide,CV_BGR2GRAY);
+    tx_out = guidedFilter(guide, tx, 3, 1e-6);
+   // resize(out, out, Size(), 4.2017, 4.2017, INTER_LINEAR);	
     clock_t t;
     t = clock();
-    imshow("Output",out);
+    imshow("Input",tx);
+    imshow("Output",tx_out);
     cout << ((float)t)/CLOCKS_PER_SEC << "seconds" << endl;
 	waitKey(0);
 	return 0;
