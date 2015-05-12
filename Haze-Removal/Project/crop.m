@@ -1,7 +1,7 @@
 
 %% For cropping the images
 
-for i = 15
+for i = 16:20
     i
 k1 = int2str(i);
 name = strcat(k1,'.png');
