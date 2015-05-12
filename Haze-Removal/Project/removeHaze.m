@@ -1,6 +1,6 @@
 %function [I J T A L] = removeHaze( imageName, patch_size )
 
-function [Orig_image out dark_ch Tx_map T A] = removeHaze( imageName, patch_size )
+function [Orig_image1 out dark_ch Tx_map T A] = removeHaze( imageName, patch_size )
 
 %REMOVEHAZE Summary of this function goes here
 %   Detailed explanation goes here
@@ -10,9 +10,11 @@ function [Orig_image out dark_ch Tx_map T A] = removeHaze( imageName, patch_size
     % Used to make image more realistic due to seeming unbelievable
     % when there is no sense of depth
     aerialPerspective = 0.95;
-
+    
+    
     Orig_image = imread(imageName);
-     Orig_image = imresize(Orig_image,0.25);
+    Orig_image1 = Orig_image;
+      Orig_image = imresize(Orig_image,0.25);
      
 %     if max(max(max(size(Orig_image)))) > 768
 %         scale = 768 / max(max(max(size(Orig_image))));
@@ -57,7 +59,10 @@ function [Orig_image out dark_ch Tx_map T A] = removeHaze( imageName, patch_size
     end
     
      Orig_image = imresize(Orig_image,4);
+     fil = fspecial('unsharp');
+     
      out = imresize(dehazed,4);
-    
+    out = imfilter(out,fil,'replicate');
+    out = imfilter(out,fil,'replicate');
 end
 
