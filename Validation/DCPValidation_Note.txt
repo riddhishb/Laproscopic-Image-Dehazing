@@ -1,6 +1,6 @@
 validationDCP_original
 
-Input: 15 (768x768) most clean of laproscopic images, window size 55x55.
+Input: 20 (768x768) most clean of laproscopic images, window size 35x35.
 Output: Find darkpixel corrosponding to each window, and plotted the histogram
 
 Inference: Shows that there is a little haze avaliable even in most clean of images in Laproscopic surgery.
