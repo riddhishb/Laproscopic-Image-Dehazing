@@ -14,7 +14,7 @@ function [Orig_image1 out dark_ch Tx_map T A] = removeHaze( imageName, patch_siz
     
     Orig_image = imread(imageName);
     Orig_image1 = Orig_image;
-      Orig_image = imresize(Orig_image,0.25);
+       Orig_image = imresize(Orig_image,0.25);
 %      
 %     if max(max(max(size(Orig_image)))) > 768
 %         scale = 768 / max(max(max(size(Orig_image))));
@@ -41,6 +41,8 @@ function [Orig_image1 out dark_ch Tx_map T A] = removeHaze( imageName, patch_siz
     numBrightestPixels = ceil(0.001 * dimJ(1) * dimJ(2)); % Use the cieling to overestimate number needed
     
     A= estimateA(Orig_image,dark_ch,numBrightestPixels);
+%     A1 = load('5A.mat');
+%     A = A1.f;
 %     size(A)
     % Section 4.1
     %   Estimate the Transmission
@@ -62,7 +64,7 @@ function [Orig_image1 out dark_ch Tx_map T A] = removeHaze( imageName, patch_siz
      fil = fspecial('unsharp');
      
      out = imresize(dehazed,4);
-    out = imfilter(out,fil,'replicate');
-    out = imfilter(out,fil,'replicate');
+     out = imfilter(out,fil,'replicate');
+     out = imfilter(out,fil,'replicate');
 end
 
