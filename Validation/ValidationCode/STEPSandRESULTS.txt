@@ -1,5 +1,9 @@
 Validation for the forward model of haze generation in laproscopic images, by comparing the known and the estimated transmission map and atmospheric light.
 
+No resizing
+35: win size
+768x768 image
+
 STEP 1
 We have the clean image that is 'hazefree.png' and we obtained 'tx.mat' and 'A.mat' from the 'image_whose_haze_was_taken.png' (done for a convenience, we could even use synthetically generated tx.mat and A.mat).
 
