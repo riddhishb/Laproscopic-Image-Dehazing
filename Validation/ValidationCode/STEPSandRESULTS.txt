@@ -1,0 +1,38 @@
+Validation for the forward model of haze generation in laproscopic images, by comparing the known and the estimated transmission map and atmospheric light.
+
+STEP 1
+We have the clean image that is 'hazefree.png' and we obtained 'tx.mat' and 'A.mat' from the 'image_whose_haze_was_taken.png' (done for a convenience, we could even use synthetically generated tx.mat and A.mat).
+
+STEP 2
+Using this known tx_map and atmospheric_light matrices we applied it on the clean image using the standard haze model in a forward manner, i.e we used
+Haze_Image = Clean_Image*TX_Map + Atmos_Light*(I - TX_Map)
+
+STEP 3
+We used the created image 'haze_image_estimate.png', and applied the haze removal algorithm to get 'tx_estimat.mat' and 'A_estimate.mat'.
+
+STEP 4
+Computed RRMSE(tx.mat,tx_estimate.mat) and RRMSE(A.mat,A_estimate.mat)
+
+STEP 5
+Repeted for several known tx.mat and A.mat but onto the same clean image.
+
+
+Results(When Estimating Both the tx and A)
+
+----------------------------------------------------------------
+	| Img No. | RRMSE of TX_Map | RRMSE of Atmos_Light|
+----------------------------------------------------------------
+	| 1.	  | 0.0973	    | 0.0156		  |
+	| 2.      | 0.1217	    | 0.0523		  |
+	| 3.	  | 0.1061	    | 0.0126		  |
+	| 4.	  | 0.1267	    | 0.0692		  |
+	| 5. 	  | 0.1538	    | 0.0738		  |
+----------------------------------------------------------------
+
+Inferences:
+ Haze estimation in laproscopic images does depen on the images we are using, there mat be artifacts like intruments and even specific organs which make a difference, all these do not occur so much in outdoor images as the depth is fairly large and have more depth resolution as compared to that of the laproscopic images. Even so we can estimate the transmission mao to suffucieny accuracy in most of the cases, as can been seen throught eh tabel above.
+
+
+NOTE: when just tx is estimated by feeding in the known A instead of estimating A, we get much better rrmse of tx
+one such number is
+
