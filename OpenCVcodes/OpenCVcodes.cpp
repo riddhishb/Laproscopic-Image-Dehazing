@@ -1,4 +1,3 @@
-// add the different routines here in form of functions
 
 #include <iostream>
 #include "opencv2/highgui/highgui.hpp"
@@ -15,6 +14,7 @@
 #include <sstream>
 #include <string>
 
+
 using namespace std;
 using namespace cv;
 
@@ -22,65 +22,247 @@ int minX,maxX,minY,maxY;
 double minVal1,minVal2,minVal3;
 double maxVal1,maxVal2,maxVal3;
 Mat ROIr,ROIb,ROIg;
+int array_for_min[2] = {0,0};
 
 Mat makeDarkChannel(Mat I,int patch_size){
 
-  	Mat J = Mat::zeros(I.size(),I.type());
-  	cvtColor(J,J,CV_BGR2GRAY);
-	int padding = cvFloor(patch_size/2);
+     Mat J = Mat::zeros(I.size(),I.type());
+     cvtColor(J,J,CV_BGR2GRAY);
+     int padding = cvFloor(patch_size/2);
 
     // padding the given image
-	Mat padded(I.rows + 2*padding, I.cols + 2*padding, I.type());
-	padded.setTo(0);
-	I.copyTo(padded(Rect(padding, padding, I.cols, I.rows)));
-	
-	vector<Mat> channelImages;
-  	split(padded,channelImages);
+    Mat padded(I.rows + 2*padding, I.cols + 2*padding, I.type());
+    padded.setTo(0);
+    I.copyTo(padded(Rect(padding, padding, I.cols, I.rows)));
+    
+    vector<Mat> channelImages;
+    split(padded,channelImages);
   
-	for(int i = 0;i<I.rows;i++){
-		minX = i;
-		maxX = i + 2*cvFloor(patch_size/2);
-		for(int j=0;j<I.cols;j++){
+    for(int i = 0;i<I.rows;i++){
+         minX = i;
+         maxX = i + 2*cvFloor(patch_size/2);
+        for(int j=0;j<I.cols;j++){
 
-			minY = j;
-			maxY = j + 2*cvFloor(patch_size/2);
-            			
+             minY = j;
+             maxY = j + 2*cvFloor(patch_size/2);
+                            
             ROIb = channelImages.at(0)(Rect(minY,minX,patch_size-1,patch_size-1));
             ROIg = channelImages.at(1)(Rect(minY,minX,patch_size-1,patch_size-1));
             ROIr = channelImages.at(2)(Rect(minY,minX,patch_size-1,patch_size-1));
 
             minMaxIdx(ROIb,&minVal1,&maxVal1);
-			minMaxIdx(ROIg,&minVal2,&maxVal2);
-			minMaxIdx(ROIr,&minVal3,&maxVal3);
+            minMaxIdx(ROIg,&minVal2,&maxVal2);
+            minMaxIdx(ROIr,&minVal3,&maxVal3);
 
             J.at<uchar>(i,j) =  fmin(minVal1,fmin(minVal3,minVal2));    
-		}
+     }
 
-	}
+ }
+   return J;
+ }
+void min_arr( int *arr , int length ){
 
-    return J;
+    int pos = 0;
+    int minimum = arr[0];
+    for (int i = 1; i < length; i++) {
+        if (minimum > arr[i]) {
+            minimum = arr[i];
+            pos = i;
+        }
+    }
+    array_for_min[0] = minimum;
+    array_for_min[1] = pos;
+    // return 0;
+}
+
+Mat estimateA(Mat I, Mat J, int numPixels){
+     Mat A;
+
+    int array[numPixels] ;
+    int arrayx[numPixels] ;
+    int arrayy[numPixels] ;
+    for(int k = 0;k<numPixels;k++){
+                 array[k] = 0;
+                 arrayx[k] = 0;
+                 arrayy[k] = 0;
+                }
+
+    for(int i = 0;i<J.cols;i++){
+        for(int j=0;j<J.rows;j++){
+
+            min_arr(array,numPixels);
+
+            if (int(J.at<uchar>(i,j)) > array_for_min[0]){
+                arrayx[array_for_min[1]] = i;
+                arrayy[array_for_min[1]] = j;
+                array[array_for_min[1]] = int(J.at<uchar>(i,j));
+            }
+        }
+    }
+
+    //      Find the highest intensity pixel from the original Image using the
+    //      list calculated above
+   
+    int highestIntensity[3] = {0,0,0};
+    int x,y,intensity;
+    for(int i = 0;i<numPixels;i++) {
+         x = arrayx[i];
+         y = arrayy[i];
+         intensity = I.at<Vec3b>(x,y)[0] + I.at<Vec3b>(x,y)[1] + I.at<Vec3b>(x,y)[2];
+        if(intensity > (highestIntensity[0] + highestIntensity[1] + highestIntensity[2])){
+            highestIntensity[0] = I.at<Vec3b>(x,y)[0];
+            highestIntensity[1] = I.at<Vec3b>(x,y)[1];
+            highestIntensity[2] = I.at<Vec3b>(x,y)[2];
+        }
+    }
+
+    A = Mat::zeros(I.size(),I.type());
+    A = cv::Scalar(highestIntensity[0], highestIntensity[1], highestIntensity[2]);  
+    return A;
+}
+
+
+
+ void unsharpMask(cv::Mat& im) 
+{
+    cv::Mat tmp;
+    cv::GaussianBlur(im, tmp, cv::Size(0,0), 3);
+    cv::addWeighted(im, 1.5, tmp, -0.5, 0, im);
 }
 
 int main(){
 
-	Mat input;
-	input = imread("10.png");
-    input = input(Rect((input.cols - input.rows)/2,0,input.rows-1,input.rows-1)); // cropping the sides.
+ Mat input;
+    double arielPerspective = 0.95;
 
-    Mat tx = imread("tx.jpg");
-    Mat guide = imread("guide.jpg");
-    //resize(input, input, Size(), 0.238, 0.238, INTER_LINEAR);
-   // Mat out = makeDarkChannel(input,21);
-    Mat tx_out;
-    cvtColor(guide,guide,CV_BGR2GRAY);
-    tx_out = guidedFilter(guide, tx, 3, 1e-6);
-   // resize(out, out, Size(), 4.2017, 4.2017, INTER_LINEAR);	
+ input = imread("23.png");
+
+ imshow("Input",input);
+    resize(input, input, Size(), 0.25, 0.25, INTER_LINEAR);
+    //input.convertTo(input,CV_32FC3,1/255.0);
+    Mat dark_ch = makeDarkChannel(input,21);
+
+    int numBrightestPixels = cvCeil(0.001 * dark_ch.rows * dark_ch.cols); // Use the cieling to overestimate number needed
+      
+    Mat A = estimateA(input,dark_ch,numBrightestPixels);
+    Mat tx_map;
+    Mat out;
+
+    divide(input,A,out,255);
+
+    tx_map = 255 - arielPerspective*makeDarkChannel(out,17);
+    
+    Mat tx_out,input_gray;
+    cvtColor(input,input_gray,CV_BGR2GRAY);
+    tx_out = tx_map;//
+    // tx_out = guidedFilter(input_gray, tx_map, 3, 1e-6);
+   
+
+
+    // Now to reconstruct the Dehazed image
+    Mat dehazed;
+    dehazed = Mat::zeros(input.size(),input.type());
+    for(int i = 0;i<dehazed.rows;i++){
+        for(int j=0;j<dehazed.cols;j++){
+            for(int c = 0;c<3;c++){
+
+                dehazed.at<Vec3b>(i,j)[c] = 255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] ;
+                // cout << max(int(tx_out.at<uchar>(i,j)),26) <<endl;
+                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] <0){
+                    dehazed.at<Vec3b>(i,j)[c] = 0;
+                }
+                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] >255){
+                    dehazed.at<Vec3b>(i,j)[c] = 255;
+                }
+            }
+        }
+    }
+
+    
+     // cout << tx_out;
+     
+     
+     resize(dehazed, dehazed, Size(), 4, 4, INTER_LINEAR);
+     unsharpMask(dehazed);
+     unsharpMask(dehazed);
+     // unsharpMask(dehazed);
     clock_t t;
     t = clock();
-    imshow("Input",tx);
-    imshow("Output",tx_out);
-    cout << ((float)t)/CLOCKS_PER_SEC << "seconds" << endl;
-	waitKey(0);
-	return 0;
+
+     imshow("Final ",dehazed);
+     imwrite("../out1.png",dehazed);
+     cout << ((float)t)/CLOCKS_PER_SEC << "seconds" << endl;
+     waitKey(0);
+     return 0;
 }
 
+
+// int main()
+// {
+    // //for video defogging
+    
+    // // VideoCapture vid("your video file");
+    // // if(!vid.isOpened())
+    // //     return -1;
+    // // double rate = vid.get(CV_CAP_PROP_FPS);
+    // // int delay = 1000/rate;
+    // //     bool stop(false);
+
+    // Mat frame;
+    // frame = imread("10.png");
+    // Mat darkChannel;
+    // Mat T;
+    // Mat fogfree;
+    // double alpha = 0.05;    //alpha smoothing
+    // int Airlightp;          //airlight value of previous frame
+    // int Airlight;           //airlight value of current frame
+    // int FrameCount = 0;     //frame number
+    //     int ad;                 //temp airlight value
+    //     namedWindow("before and after", CV_WINDOW_AUTOSIZE);
+    
+    // // for(;;)
+    // // {
+    // //     vid >> frame;
+    // //     FrameCount++;
+    // //     if(vid.get(CV_CAP_PROP_POS_AVI_RATIO)==1)
+    // //         break;
+
+    //     //create mat for showing the frame before and after processing
+    //         Mat beforeafter = Mat::zeros(frame.rows, 2 * frame.cols, CV_8UC3);
+    //         Rect roil (0, 0, frame.cols, frame.rows);
+    //         Rect roir (frame.cols, 0, frame.cols, frame.rows);
+
+    //     //first frame, without airlight smoothing
+    //     if (FrameCount == 1)
+    //     {
+    //         darkChannel = getMedianDarkChannel(frame, 5);
+    //             Airlight = estimateA(darkChannel);
+    //             T = estimateTransmission(darkChannel, Airlight);
+    //         ad = Airlight;
+    //                     fogfree = getDehazed(frame, T, Airlight);
+    //     }
+
+    //     //other frames, with airlight smoothing
+    //     // else
+    //     // {
+    //     //     double t = (double)getTickCount();
+
+    //     //     Airlightp = ad;
+    //     //     darkChannel = getMedianDarkChannel(frame, 5);
+    //     //         Airlight = estimateA(darkChannel);
+    //     //         T = estimateTransmission(darkChannel, Airlight);
+    //     //                 cout<<"previous:"<<Airlightp<<"--current:"<<Airlight<<endl;
+    //     //         ad = int(alpha * double(Airlight) + (1 - alpha) * double(Airlightp));//airlight smoothing
+    //     //         cout<<"smoothed airlight is:"<<ad<<endl;
+    //     //         fogfree = getDehazed(frame, T, ad);
+
+    //     //     t = (double)cvGetTickCount() - t;
+    //     //     printf( "=============Execution time per frame = %gms\n", t/((double)cvGetTickFrequency()*1000.) );
+    //     // }
+    //         frame.copyTo(beforeafter(roil));
+    //         fogfree.copyTo(beforeafter(roir));
+    //     imshow("before and after", beforeafter);
+
+    // //     if(waitKey(delay) >= 0)
+    // //         stop = true;
+    // // // }
