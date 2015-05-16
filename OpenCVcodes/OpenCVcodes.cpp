@@ -18,6 +18,7 @@
 using namespace std;
 using namespace cv;
 
+clock_t t;
 int minX,maxX,minY,maxY;
 double minVal1,minVal2,minVal3;
 double maxVal1,maxVal2,maxVal3;
@@ -133,14 +134,16 @@ Mat estimateA(Mat I, Mat J, int numPixels){
 int main(){
 
  Mat input;
-    double arielPerspective = 0.95;
+double arielPerspective = 0.95;
 
- input = imread("23.png");
+ input = imread("10.png");
 
- imshow("Input",input);
+// imshow("Input",input);
     resize(input, input, Size(), 0.25, 0.25, INTER_LINEAR);
     //input.convertTo(input,CV_32FC3,1/255.0);
-    Mat dark_ch = makeDarkChannel(input,21);
+
+   
+    Mat dark_ch = makeDarkChannel(input,17);
 
     int numBrightestPixels = cvCeil(0.001 * dark_ch.rows * dark_ch.cols); // Use the cieling to overestimate number needed
       
@@ -152,9 +155,9 @@ int main(){
 
     tx_map = 255 - arielPerspective*makeDarkChannel(out,17);
     
-    Mat tx_out,input_gray;
-    cvtColor(input,input_gray,CV_BGR2GRAY);
-    tx_out = tx_map;//
+    // Mat tx_out,input_gray;
+    // cvtColor(input,input_gray,CV_BGR2GRAY);
+    // tx_out = tx_map;//
     // tx_out = guidedFilter(input_gray, tx_map, 3, 1e-6);
    
 
@@ -162,16 +165,17 @@ int main(){
     // Now to reconstruct the Dehazed image
     Mat dehazed;
     dehazed = Mat::zeros(input.size(),input.type());
+
     for(int i = 0;i<dehazed.rows;i++){
         for(int j=0;j<dehazed.cols;j++){
             for(int c = 0;c<3;c++){
 
-                dehazed.at<Vec3b>(i,j)[c] = 255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] ;
+                dehazed.at<Vec3b>(i,j)[c] = 255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_map.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] ;
                 // cout << max(int(tx_out.at<uchar>(i,j)),26) <<endl;
-                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] <0){
+                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_map.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] <0){
                     dehazed.at<Vec3b>(i,j)[c] = 0;
                 }
-                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_out.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] >255){
+                if(255*(input.at<Vec3b>(i,j)[c] - A.at<Vec3b>(i,j)[c])/max(int(tx_map.at<uchar>(i,j)),26) + A.at<Vec3b>(i,j)[c] >255){
                     dehazed.at<Vec3b>(i,j)[c] = 255;
                 }
             }
@@ -186,11 +190,10 @@ int main(){
      unsharpMask(dehazed);
      unsharpMask(dehazed);
      // unsharpMask(dehazed);
-    clock_t t;
-    t = clock();
+    
 
      imshow("Final ",dehazed);
-     imwrite("../out1.png",dehazed);
+     imwrite("../out.png",dehazed);
      cout << ((float)t)/CLOCKS_PER_SEC << "seconds" << endl;
      waitKey(0);
      return 0;
